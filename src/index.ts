@@ -1,4 +1,5 @@
 type Options = {
+  autoScale?: boolean;
   onHint?: (type: HintType, acknowledgeCallback: () => void) => void;
 };
 type Point = { x: number; y: number };
@@ -9,18 +10,20 @@ class ModernPanZoom {
   options: Options;
   element: HTMLElement;
   coords: Point;
-  _zoomLevel: number;
+  _scale: number;
   currentPoint?: Point;
   initialDistance?: number;
   muteHints?: boolean;
 
   constructor(element: HTMLElement, options: Options) {
-    this._zoomLevel = 1;
     this.coords = { x: 0, y: 0 };
     this.element = element;
-
+    this._scale = 1;
     this.options = options;
+
+    this.options.autoScale && this.calculateAutoScale();
     this.setupListeners();
+    this.updateTransform();
   }
 
   setupListeners() {
@@ -54,12 +57,37 @@ class ModernPanZoom {
     document.removeEventListener("mouseup", this.onMouseUp.bind(this));
   }
 
-  set zoomLevel(level) {
-    this._zoomLevel = Math.min(Math.max(level, 0.2), 4);
+  set scale(level) {
+    this._scale = Math.min(Math.max(level, 0.2), 4);
   }
 
-  get zoomLevel() {
-    return this._zoomLevel;
+  get scale() {
+    return this._scale;
+  }
+
+  calculateAutoScale() {
+    const { width, height } = this.element.getBoundingClientRect();
+    const childElements = Object.values(
+      this.element.childNodes
+    ) as HTMLElement[];
+    const left = Math.min(
+      ...childElements.map((el) => el.getBoundingClientRect().left)
+    );
+    const right = Math.max(
+      ...childElements.map((el) => el.getBoundingClientRect().right)
+    );
+    const childWidth = right - left;
+    const top = Math.min(
+      ...childElements.map((el) => el.getBoundingClientRect().top)
+    );
+    const bottom = Math.max(
+      ...childElements.map((el) => el.getBoundingClientRect().bottom)
+    );
+    const childHeight = bottom - top;
+    this.scale = Math.min(
+      (width * 0.85) / childWidth,
+      (height * 0.85) / childHeight
+    );
   }
 
   onMouseDown(event: MouseEvent) {
@@ -130,7 +158,7 @@ class ModernPanZoom {
     // Calculate the difference between the current distance and the initial distance
     var delta = distance - this.initialDistance;
     // Calculate the new zoom level based on the distance difference
-    this.zoomLevel += delta * 0.005;
+    this.scale += delta * 0.005;
 
     const midX = (touch1.clientX + touch2.clientX) / 2;
     const midY = (touch1.clientY + touch2.clientY) / 2;
@@ -155,19 +183,11 @@ class ModernPanZoom {
     if (event.ctrlKey || event.metaKey) {
       event.preventDefault();
       // Calculate the new zoom level based on the mouse wheel delta
-      this.zoomLevel -= event.deltaY * 0.003;
+      this.scale -= event.deltaY * 0.003;
       this.updateTransform();
     } else {
       this.sendHint("wheel");
     }
-  }
-
-  updateTransform() {
-    const transform = `translate3d(${this.coords.x}px, ${this.coords.y}px, 0) scale(${this.zoomLevel})`;
-    const childElements = Object.values(
-      this.element.childNodes
-    ) as HTMLElement[];
-    childElements.forEach((node) => (node.style.transform = transform));
   }
 
   sendHint(type: HintType) {
@@ -177,6 +197,14 @@ class ModernPanZoom {
       });
       this.muteHints = true;
     }
+  }
+
+  updateTransform() {
+    const transform = `translate3d(${this.coords.x}px, ${this.coords.y}px, 0) scale(${this.scale})`;
+    const childElements = Object.values(
+      this.element.childNodes
+    ) as HTMLElement[];
+    childElements.forEach((node) => (node.style.transform = transform));
   }
 }
 

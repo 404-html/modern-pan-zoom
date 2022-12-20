@@ -28,5 +28,8 @@
   "license": "MIT",
   "devDependencies": {
     "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "tslib": "^2.4.1"
   }
 }
