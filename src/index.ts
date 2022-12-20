@@ -17,18 +17,41 @@ class ModernPanZoom {
   constructor(element: HTMLElement, options: Options) {
     this._zoomLevel = 1;
     this.coords = { x: 0, y: 0 };
-    this.element = (element.firstChild as HTMLElement) || element;
+    this.element = element;
 
     this.options = options;
+    this.setupListeners();
+  }
 
-    element.addEventListener("wheel", this.handleMouseWheel.bind(this));
-    element.addEventListener("touchstart", this.handleTouchStart.bind(this));
-    element.addEventListener("touchmove", this.handleTouchMove.bind(this));
+  setupListeners() {
+    this.element.addEventListener("wheel", this.handleMouseWheel.bind(this));
+    this.element.addEventListener(
+      "touchstart",
+      this.handleTouchStart.bind(this)
+    );
+    this.element.addEventListener("touchmove", this.handleTouchMove.bind(this));
     document.addEventListener("touchend", this.onTouchEnd.bind(this));
 
-    element.addEventListener("mousedown", this.onMouseDown.bind(this));
+    this.element.addEventListener("mousedown", this.onMouseDown.bind(this));
     document.addEventListener("mousemove", this.onMouseMove.bind(this));
     document.addEventListener("mouseup", this.onMouseUp.bind(this));
+  }
+
+  removeListeners() {
+    this.element.removeEventListener("wheel", this.handleMouseWheel.bind(this));
+    this.element.removeEventListener(
+      "touchstart",
+      this.handleTouchStart.bind(this)
+    );
+    this.element.removeEventListener(
+      "touchmove",
+      this.handleTouchMove.bind(this)
+    );
+    document.removeEventListener("touchend", this.onTouchEnd.bind(this));
+
+    this.element.removeEventListener("mousedown", this.onMouseDown.bind(this));
+    document.removeEventListener("mousemove", this.onMouseMove.bind(this));
+    document.removeEventListener("mouseup", this.onMouseUp.bind(this));
   }
 
   set zoomLevel(level) {
@@ -141,7 +164,10 @@ class ModernPanZoom {
 
   updateTransform() {
     const transform = `translate3d(${this.coords.x}px, ${this.coords.y}px, 0) scale(${this.zoomLevel})`;
-    this.element.style.transform = transform;
+    const childElements = Object.values(
+      this.element.childNodes
+    ) as HTMLElement[];
+    childElements.forEach((node) => (node.style.transform = transform));
   }
 
   sendHint(type: HintType) {
