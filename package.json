@@ -27,9 +27,7 @@
   "author": "404.html",
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^4.9.4"
-  },
-  "dependencies": {
+    "typescript": "^4.9.4",
     "tslib": "^2.4.1"
   }
 }
