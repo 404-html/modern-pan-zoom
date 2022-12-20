@@ -20,6 +20,7 @@ export default function App() {
   useEffect(() => {
     if (!elRef.current) return;
     const panZoom = new ModernPanZoom(elRef.current, {
+      autoScale: true, // sets initial zoom for child(s) to fit the parent, default: false
       onHint: (type, acknowledge) => {
         type === "pan" && alert("Use two fingers to navigate");
         type === "wheel" && alert("Use ⌘ + scroll to zoom");
