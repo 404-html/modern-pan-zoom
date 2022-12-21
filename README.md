@@ -1,6 +1,12 @@
 # Simple, Google Maps like, pan/zoom for the web
 
-[Production demo](https://recordscanner.com/user/record-scanner/collection)
+## [Production demo](https://recordscanner.com/user/record-scanner/collection)
+
+Cooperative Gesture Handler, makes content of any element behaving like [Embed Google Maps](https://developers.google.com/maps/documentation/embed/get-started).
+
+on 📱 - detects single finger gesture, doesn't block the scroll
+
+on 💻 - detects wheel, zooms when ⌘/ctrl is pressed
 
 ## Installation
 
@@ -24,6 +30,9 @@ export default function App() {
       onHint: (type, acknowledge) => {
         type === "pan" && alert("Use two fingers to navigate");
         type === "wheel" && alert("Use ⌘ + scroll to zoom");
+
+        // onHint() will not be called again until acknowledge() is executed
+        setTimeout(acknowledge, 2000);
       },
     });
   }, []);
